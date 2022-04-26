@@ -28,7 +28,7 @@ library(forecast)
 # Importing Data
 
 ```{r}
-d_power <- read.csv("./Electric_Production.csv")
+d_power <- read.csv("./data.csv")
 head(d_power)
 summary(d_power)
 ```
@@ -75,10 +75,7 @@ pacf(decomp_power$random, na.action = na.omit)
 ```{r}
 m1 <- auto.arima(ts_power_train, allowdrift = FALSE)
 m2 <- auto.arima(log(ts_power_train))
-m3 <- arima(ts_power_train, )
-
-
-m3$coef
+m3 <- arima(ts_power_train, order = c(2, 1, 2), seasonal = c(2, 1, 2))
 ```
 
 ```{r}
