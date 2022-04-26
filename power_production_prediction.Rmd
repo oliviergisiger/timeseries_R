@@ -1,0 +1,109 @@
+---
+title: "Power Consuption Time Series"
+author: "Olivier Gisiger"
+date: "4/26/2022"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+setwd("/Users/oliviergisiger/Documents/Projekte/timeseries_R")
+```
+
+
+```{r}
+library(tidyverse)
+library(readr)
+library(lubridate)
+library(mice)
+library(forecast)
+```
+
+
+# Importing Data
+
+```{r}
+d_power <- read.csv("./Electric_Production.csv")
+head(d_power)
+summary(d_power)
+```
+
+## Converting Datetimes
+
+```{r}
+d_power$DATE <- as.Date(d_power$DATE, format = "%m/%d/%Y")
+head(d_power)
+summary(d_power)
+
+```
+
+## Creating a Time Series
+```{r}
+ts_power <- ts(d_power$IPG2211A2N, start = 1985, frequency = 12)
+
+```
+
+### Creating a training dataset
+```{r}
+ts_power_train <- window(ts_power, end = c(2014, 12))
+```
+
+### Explorative Data Analysis
+
+```{r}
+plot(ts_power_train)
+
+hist(ts_power_train)
+hist(log(ts_power_train))
+```
+
+```{r}
+decomp_power <- decompose(ts_power_train, type = "multi")
+
+acf(decomp_power$random, na.action = na.omit)
+pacf(decomp_power$random, na.action = na.omit)
+
+
+```
+
+
+```{r}
+m1 <- auto.arima(ts_power_train, allowdrift = FALSE)
+m2 <- auto.arima(log(ts_power_train))
+m3 <- arima(ts_power_train, )
+
+
+m3$coef
+```
+
+```{r}
+p1 <- predict(m1, n.ahead = 37)
+p2 <- predict(m2, n.ahead = 37)
+p3 <- predict(m3, n.ahead = 37)
+
+plot(window(ts_power, start = 2000))
+lines(p1$pred, col = "red")
+lines(exp(p2$pred), col = "blue")
+lines(p3$pred, col = "green")
+```
+
+
+```{r}
+ts_power_test <- window(ts_power, start = 2015)
+
+
+mse_m1 <- sum((ts_power_test - p1$pred) ** 2)
+mse_m2 <- sum((ts_power_test - p2$pred) ** 2)
+mse_m3 <- sum((ts_power_test - p3$pred) ** 2)
+
+mse_m1
+mse_m2
+mse_m3
+```
+
+
